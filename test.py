@@ -1,17 +1,14 @@
 import sys
+from rpmmd import RpmmdPool, Repomd, Primary
 from store import Pool
-from rpmmd import Repomd, Primary
 
-rpath, ppath = sys.argv[1:3]
+url = sys.argv[1]
+hsh = 'd8eb50173e29c8a5c81b2883f89bc29cbb97f6b9e3d7a59f19e8e0b896556f2d'
 
-pool = Pool({1: Repomd, 2: Primary})
-repomd = Repomd(rpath, magic=False)
-primary = Primary(ppath, magic=False)
-h1 = pool.put(repomd)
-h2 = pool.put(primary)
+master = RpmmdPool(url)
+slave = Pool({0: Repomd, 1: Primary})
 
-obj1 = pool.get(h1)
-obj2 = pool.get(h2)
-print(obj1.hash)
-print(obj2.hash)
-print(obj1.index)
+repomd = master.get(hsh)
+print(repomd.index)
+
+master.clean()

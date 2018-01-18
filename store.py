@@ -10,14 +10,17 @@ class Object(object):
                 # Skip the magic byte
                 f.read(1)
             data = f.read()
-        m = hashlib.new('sha256')
-        m.update(data)
-        self.hash = m.hexdigest()
+
+        self.path = path
         self.data = data
         self.index = self.parse(data)
 
+        m = hashlib.new('sha256')
+        m.update(data)
+        self.hash = m.hexdigest()
+
     def parse(self, data):
-        pass
+        return []
 
 
 class Pool(object):
@@ -31,8 +34,8 @@ class Pool(object):
     def _gen_path(self, hsh):
         w = self.width
         d = self.depth
-        cmps = [hsh[i:i+w] for i in range(0, w * d, w)]
-        cmps[-1] += hsh[w * d:]
+        cmps = [hsh[i:i+w] for i in range(0, w*d, w)]
+        cmps[-1] += hsh[w*d:]
         return os.path.join(self.base, *cmps)
 
     def _read_type(self, path):
