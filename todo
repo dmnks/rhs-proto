@@ -1,1 +1,1 @@
-* implement RpmmdPool class that loads the objects into memory
+* implement Object.walk()

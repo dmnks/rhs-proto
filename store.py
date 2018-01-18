@@ -77,9 +77,3 @@ class Pool(object):
 
     def save(self):
         pass
-
-
-if __name__ == '__main__':
-    p = Pool(dict())
-    h = '98ea6e4f216f2fb4b69fff9b3a44842c38686ca685f3f55dc48c5d3fb1107be4'
-    print(p._gen_path(h))
