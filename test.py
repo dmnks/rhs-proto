@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import sys
 from rpmmd import RpmmdPool, Repomd, Primary
 from store import Pool
