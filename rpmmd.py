@@ -10,7 +10,7 @@ class Repomd(store.Object):
         d = tempfile.mkdtemp()
         repodata = d + '/repodata'
         os.mkdir(repodata)
-        os.link(self.path, repodata + '/repomd.xml')
+        self.checkout(repodata + '/repomd.xml')
         return d
 
     def parse(self, data):

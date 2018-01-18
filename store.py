@@ -4,14 +4,14 @@ import os
 
 # Abstract class
 class Object(object):
-    def __init__(self, path, magic=True):
+    def __init__(self, path, pool=None, magic=True):
         with open(path, 'rb') as f:
             if magic:
                 # Skip the magic byte
                 f.read(1)
             data = f.read()
 
-        self.path = path
+        self.pool = pool
         self.data = data
         self.index = self.parse(data)
 
@@ -21,6 +21,21 @@ class Object(object):
 
     def parse(self, data):
         return []
+
+    def checkout(self, path):
+        with open(path, 'wb') as f:
+            f.write(self.data)
+
+    def walk(self):
+        total = []
+        for hsh in self.index:
+            obj = self.pool.get(hsh)
+            if obj is None:
+                total.append(hsh)
+                continue
+            hashes = obj.walk()
+            total.extend(hashes)
+        return total
 
 
 class Pool(object):
@@ -52,7 +67,7 @@ class Pool(object):
             if not os.path.exists(path):
                 return None
             cls = self._read_type(path)
-            obj = cls(path)
+            obj = cls(path, pool=self)
             self._table[hsh] = obj
             return obj
 

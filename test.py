@@ -2,13 +2,19 @@ import sys
 from rpmmd import RpmmdPool, Repomd, Primary
 from store import Pool
 
-url = sys.argv[1]
-hsh = 'd8eb50173e29c8a5c81b2883f89bc29cbb97f6b9e3d7a59f19e8e0b896556f2d'
+hroot = sys.argv[1]
+url = sys.argv[2]
 
 master = RpmmdPool(url)
 slave = Pool({0: Repomd, 1: Primary})
 
-repomd = master.get(hsh)
-print(repomd.index)
+o = master.get(hroot)
+slave.put(o)
+o = slave.get(hroot)
+
+hmissing = o.walk()
+for h in hmissing:
+    o = master.get(h)
+    slave.put(o)
 
 master.clean()
