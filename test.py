@@ -13,9 +13,12 @@ o = master.get(hroot)
 slave.put(o)
 o = slave.get(hroot)
 
-hmissing = o.walk()
-for h in hmissing:
-    o = master.get(h)
-    slave.put(o)
+while True:
+    hmissing = o.walk()
+    if not hmissing:
+        break
+    for h in hmissing:
+        o = master.get(h)
+        slave.put(o)
 
 master.clean()
