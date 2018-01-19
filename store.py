@@ -48,6 +48,8 @@ class Pool(object):
         self.base = base
         self.width = width
         self.depth = depth
+        self.refs = []
+        self.head = None
 
     def _gen_path(self, hsh):
         w = self.width
@@ -95,3 +97,32 @@ class Pool(object):
 
     def save(self):
         pass
+
+
+class Store(object):
+    def __init__(self, slave):
+        self.slave = slave
+
+    def _fetch_refs(self, master):
+        self.slave.refs = master.refs
+        self.slave.head = master.head
+
+    def _fetch_objs(self, master, ref):
+        h = self.slave.refs[ref]
+        o = self.slave.get(h)
+        if not o:
+            o = master.get(h)
+            self.slave.put(o)
+            o = self.slave.get(h)
+
+        while True:
+            missing = o.walk()
+            if not missing:
+                break
+            for h in missing:
+                o = master.get(h)
+                self.slave.put(o)
+
+    def fetch(self, master):
+        self._fetch_refs(master)
+        self._fetch_objs(master, self.slave.head)

@@ -35,6 +35,7 @@ class Primary(store.Object):
 
 class RpmmdPool(object):
     def __init__(self, url):
+        # Fetch metadata
         h = librepo.Handle()
         r = librepo.Result()
         h.repotype = librepo.LR_YUMREPO
@@ -44,12 +45,12 @@ class RpmmdPool(object):
             h.perform(r)
         except librepo.LibrepoException as e:
             pass
-
         data = r.getinfo(librepo.LRR_YUM_REPOMD)
         data['repomd'] = {
             'location_href': self._destdir + '/repodata/repomd.xml',
         }
 
+        # Generate objects
         k2o = {'repomd': Repomd, 'primary': Primary}
         self._table = {}
         for key, cls in k2o.items():
@@ -58,6 +59,19 @@ class RpmmdPool(object):
             path = os.path.join(self._destdir, path)
             obj = cls(path, magic=False)
             self._table[obj.hash] = obj
+
+        # Generate refs
+        repo = self._parse_name(url)
+        with open(data['repomd']['location_href'], 'rb') as f:
+            h = store.gen_hash(f.read())
+        self.refs = {repo: h}
+        self.head = repo
+
+    def _parse_name(self, url):
+        comps = url.split('/')
+        distro = comps[4]
+        release = comps[7]
+        return distro + release
 
     def clean(self):
         shutil.rmtree(self._destdir)
