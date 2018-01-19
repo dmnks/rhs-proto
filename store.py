@@ -2,6 +2,12 @@ import hashlib
 import os
 
 
+def gen_hash(data):
+    m = hashlib.new('sha256')
+    m.update(data)
+    return m.hexdigest()
+
+
 # Abstract class
 class Object(object):
     def __init__(self, path, pool=None, magic=True):
@@ -14,10 +20,7 @@ class Object(object):
         self.pool = pool
         self.data = data
         self.index = self.parse(data)
-
-        m = hashlib.new('sha256')
-        m.update(data)
-        self.hash = m.hexdigest()
+        self.hash = gen_hash(data)
 
     def parse(self, data):
         return []
