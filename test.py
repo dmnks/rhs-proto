@@ -3,21 +3,21 @@ import sys
 from rpmmd import RpmmdPool, Repomd, Primary
 from store import Pool
 
-hroot = sys.argv[1]
+head = sys.argv[1]
 url = sys.argv[2]
 
 master = RpmmdPool(url)
 slave = Pool({0: Repomd, 1: Primary})
 
-o = master.get(hroot)
+o = master.get(head)
 slave.put(o)
-o = slave.get(hroot)
+o = slave.get(head)
 
 while True:
-    hmissing = o.walk()
-    if not hmissing:
+    missing = o.walk()
+    if not missing:
         break
-    for h in hmissing:
+    for h in missing:
         o = master.get(h)
         slave.put(o)
 
