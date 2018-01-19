@@ -14,8 +14,8 @@ def gen_hash(data):
 class Object(object):
     def __init__(self, path, pool=None):
         data = self.read(path)
-        self.pool = pool
-        self.data = data
+        self._pool = pool
+        self._data = data
         self.index = self.parse(data)
         self.hash = gen_hash(data)
 
@@ -25,15 +25,15 @@ class Object(object):
 
     def write(self, path):
         with open(path, 'wb') as f:
-            f.write(self.data)
+            f.write(self._data)
 
     def parse(self, data):
-        return []
+        raise NotImplementedError()
 
     def walk(self):
         total = []
         for hsh in self.index:
-            obj = self.pool.get(hsh)
+            obj = self._pool.get(hsh)
             if obj is None:
                 total.append(hsh)
                 continue
@@ -94,9 +94,6 @@ class Pool(object):
             os.makedirs(prefix)
         obj.write(path)
         return obj.hash
-
-    def save(self):
-        pass
 
 
 class Store(object):

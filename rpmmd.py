@@ -30,7 +30,8 @@ class Repomd(store.Object):
 
 
 class Primary(store.Object):
-    pass
+    def parse(self, data):
+        return []
 
 
 spec = {
