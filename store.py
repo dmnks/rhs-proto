@@ -1,31 +1,16 @@
-import hashlib
 import os
 import gzip
 import binascii
 
 
-def gen_hash(data):
-    m = hashlib.new('sha256')
-    m.update(data)
-    return m.hexdigest()
-
-
 # Abstract class
 class Object(object):
-    def __init__(self, path, pool=None):
-        data = self.read(path)
-        self._pool = pool
+    def __init__(self, hsh, data, path, pool=None):
         self._data = data
+        self._path = path
+        self._pool = pool
+        self.hash = hsh
         self.index = self.parse(data)
-        self.hash = gen_hash(data)
-
-    def read(self, path):
-        with open(path, 'rb') as f:
-            return f.read()
-
-    def write(self, path):
-        with open(path, 'wb') as f:
-            f.write(self._data)
 
     def parse(self, data):
         raise NotImplementedError()
@@ -60,17 +45,28 @@ class Pool(object):
         cmps[-1] += hsh[w*d:]
         return os.path.join(self.base, *cmps)
 
-    def detect(self, path):
+    def _read(self, path):
         with open(path, 'rb') as f:
             gz = binascii.hexlify(f.read(2)) == b'1f8b'
         if gz:
             f = gzip.open(path, 'rt')
         else:
             f = open(path, 'r')
-        f.seek(self._spec['offset'])
-        header = f.read(len(list(self._spec['headers'].keys())[0]))
+        data = f.read()
         f.close()
-        return self._spec['headers'][header]
+        return data
+
+    def _write(self, obj, path):
+        os.link(obj._path, path)
+
+    def checkout(self, obj, path):
+        self._write(obj, path)
+
+    def detect(self, data):
+        headers = self._spec['headers']
+        start = self._spec['offset']
+        end = start + len(list(headers.keys())[0])
+        return headers[data[start:end]]
 
     def get(self, hsh):
         try:
@@ -80,8 +76,9 @@ class Pool(object):
             path = self._gen_path(hsh)
             if not os.path.exists(path):
                 return None
-            cls = self.detect(path)
-            obj = cls(path, pool=self)
+            data = self._read(path)
+            cls = self.detect(data)
+            obj = cls(hsh, data, path, self)
             self._table[hsh] = obj
             return obj
 
@@ -92,7 +89,10 @@ class Pool(object):
         prefix = os.path.split(path)[0]
         if not os.path.exists(prefix):
             os.makedirs(prefix)
-        obj.write(path)
+        self._write(obj, path)
+        obj._path = path
+        obj._pool = self
+        self._table[obj.hash] = obj
         return obj.hash
 
 
@@ -110,7 +110,6 @@ class Store(object):
         if not o:
             o = master.get(h)
             self.slave.put(o)
-            o = self.slave.get(h)
 
         while True:
             missing = o.walk()

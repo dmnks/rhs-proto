@@ -1,8 +1,15 @@
 import os
 import shutil
 import tempfile
+import hashlib
 import librepo
 import store
+
+
+def gen_hash(data):
+    m = hashlib.new('sha256')
+    m.update(data.encode('utf-8'))
+    return m.hexdigest()
 
 
 class Repomd(store.Object):
@@ -10,7 +17,7 @@ class Repomd(store.Object):
         d = tempfile.mkdtemp()
         repodata = d + '/repodata'
         os.mkdir(repodata)
-        self.write(repodata + '/repomd.xml')
+        self._pool.checkout(self, repodata + '/repomd.xml')
         return d
 
     def parse(self, data):
@@ -40,7 +47,7 @@ spec = {
 }
 
 
-class Pool(object):
+class Pool(store.Pool):
     def __init__(self, url):
         # Fetch metadata
         h = librepo.Handle()
@@ -53,25 +60,28 @@ class Pool(object):
         except librepo.LibrepoException as e:
             pass
         data = r.getinfo(librepo.LRR_YUM_REPOMD)
-        data['repomd'] = {
-            'location_href': self._destdir + '/repodata/repomd.xml',
-        }
+
+        # Add repomd to data
+        path = self._destdir + '/repodata/repomd.xml'
+        with open(path, 'r') as f:
+            repomd_hash = gen_hash(f.read())
+        data['repomd'] = {'checksum': repomd_hash, 'location_href': path}
 
         # Generate objects
         k2o = {'repomd': Repomd, 'primary': Primary}
         self._table = {}
         for key, cls in k2o.items():
             item = data[key]
+            csum = item['checksum']
             path = item['location_href']
             path = os.path.join(self._destdir, path)
-            obj = cls(path)
-            self._table[obj.hash] = obj
+            d = self._read(path)
+            obj = cls(csum, d, path, self)
+            self._table[csum] = obj
 
         # Generate refs
         repo = self._parse_name(url)
-        with open(data['repomd']['location_href'], 'rb') as f:
-            h = store.gen_hash(f.read())
-        self.refs = {repo: h}
+        self.refs = {repo: repomd_hash}
         self.head = repo
 
     def _parse_name(self, url):
@@ -86,3 +96,6 @@ class Pool(object):
     def get(self, hsh):
         print('Get master object: %s' % hsh)
         return self._table[hsh]
+
+    def put(self, hsh):
+        raise NotImplementedError()
