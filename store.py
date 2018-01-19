@@ -68,7 +68,7 @@ class Pool(object):
         else:
             f = open(path, 'r')
         f.seek(self._spec['offset'])
-        header = f.read(self._spec['headerlen'])
+        header = f.read(len(list(self._spec['headers'].keys())[0]))
         f.close()
         return self._spec['headers'][header]
 
