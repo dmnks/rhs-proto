@@ -10,7 +10,7 @@ class Repomd(store.Object):
         d = tempfile.mkdtemp()
         repodata = d + '/repodata'
         os.mkdir(repodata)
-        self.checkout(repodata + '/repomd.xml')
+        self.write(repodata + '/repomd.xml')
         return d
 
     def parse(self, data):
@@ -31,6 +31,12 @@ class Repomd(store.Object):
 
 class Primary(store.Object):
     pass
+
+
+class RpmmdSpec(object):
+    headers = {'<r': Repomd, '<m': Primary}
+    headerlen = 2
+    offset = len('<?xml version="1.0" encoding="UTF-8"?>') + 1
 
 
 class RpmmdPool(object):
@@ -57,7 +63,7 @@ class RpmmdPool(object):
             item = data[key]
             path = item['location_href']
             path = os.path.join(self._destdir, path)
-            obj = cls(path, magic=False)
+            obj = cls(path)
             self._table[obj.hash] = obj
 
         # Generate refs
