@@ -77,4 +77,5 @@ class RpmmdPool(object):
         shutil.rmtree(self._destdir)
 
     def get(self, hsh):
+        print('Get master object: %s' % hsh)
         return self._table[hsh]
