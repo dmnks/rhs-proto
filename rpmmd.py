@@ -31,9 +31,9 @@ class Repomd(store.Object):
             h.perform(r)
         except librepo.LibrepoException as e:
             pass
-        data = r.getinfo(librepo.LRR_YUM_REPOMD)
+        result = r.getinfo(librepo.LRR_YUM_REPOMD)
         shutil.rmtree(d)
-        return [data[t]['checksum'] for t in ['primary']]
+        return [result[t]['checksum'] for t in ['primary']]
 
 
 class Primary(store.Object):
@@ -59,24 +59,24 @@ class Pool(store.Pool):
             h.perform(r)
         except librepo.LibrepoException as e:
             pass
-        data = r.getinfo(librepo.LRR_YUM_REPOMD)
+        result = r.getinfo(librepo.LRR_YUM_REPOMD)
 
         # Add repomd to data
         path = self._destdir + '/repodata/repomd.xml'
         with open(path, 'r') as f:
             repomd_hash = gen_hash(f.read())
-        data['repomd'] = {'checksum': repomd_hash, 'location_href': path}
+        result['repomd'] = {'checksum': repomd_hash, 'location_href': path}
 
         # Generate objects
         k2o = {'repomd': Repomd, 'primary': Primary}
         self._table = {}
         for key, cls in k2o.items():
-            item = data[key]
+            item = result[key]
             csum = item['checksum']
             path = item['location_href']
             path = os.path.join(self._destdir, path)
-            d = self._read(path)
-            obj = cls(csum, d, path, self)
+            data = self._read(path)
+            obj = cls(csum, data, path, self)
             self._table[csum] = obj
 
         # Generate refs
