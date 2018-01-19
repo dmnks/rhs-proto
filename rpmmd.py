@@ -33,13 +33,14 @@ class Primary(store.Object):
     pass
 
 
-class RpmmdSpec(object):
-    headers = {'<r': Repomd, '<m': Primary}
-    headerlen = 2
-    offset = len('<?xml version="1.0" encoding="UTF-8"?>') + 1
+spec = {
+    'headers': {'<r': Repomd, '<m': Primary},
+    'headerlen': 2,
+    'offset': len('<?xml version="1.0" encoding="UTF-8"?>') + 1,
+}
 
 
-class RpmmdPool(object):
+class Pool(object):
     def __init__(self, url):
         # Fetch metadata
         h = librepo.Handle()

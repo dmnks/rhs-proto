@@ -1,12 +1,12 @@
 #!/usr/bin/python3
 import sys
-from rpmmd import RpmmdPool, RpmmdSpec
-from store import Store, Pool
+import store
+import rpmmd
 
 url = sys.argv[1]
 
-master = RpmmdPool(url)
-slave = Pool(RpmmdSpec)
-store = Store(slave)
-store.fetch(master)
+master = rpmmd.Pool(url)
+slave = store.Pool(rpmmd.spec)
+st = store.Store(slave)
+st.fetch(master)
 master.clean()

@@ -67,10 +67,10 @@ class Pool(object):
             f = gzip.open(path, 'rt')
         else:
             f = open(path, 'r')
-        f.seek(self._spec.offset)
-        header = f.read(self._spec.headerlen)
+        f.seek(self._spec['offset'])
+        header = f.read(self._spec['headerlen'])
         f.close()
-        return self._spec.headers[header]
+        return self._spec['headers'][header]
 
     def get(self, hsh):
         try:
