@@ -1,2 +1,4 @@
+* implement checkout and create rhs binary
 * rename get/put to load/save for clarity?
-* implement checkout
+* move read/write to object after all?
+* weak objects (rpms)
