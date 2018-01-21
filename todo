@@ -1,4 +1,6 @@
 * implement checkout and create rhs binary
+* document the design
+* implement primary -> part
 * rename get/put to load/save for clarity?
 * move read/write to object after all?
 * weak objects (rpms)
