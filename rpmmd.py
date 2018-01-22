@@ -109,7 +109,7 @@ class MasterPool(store.Pool):
         shutil.rmtree(self._destdir)
 
     def load(self, hsh):
-        print('Load master object: %s' % hsh)
+        print('Receive object: %s' % hsh)
         return self._table[hsh]
 
     def save(self, hsh):
