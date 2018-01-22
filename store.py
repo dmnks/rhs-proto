@@ -18,7 +18,7 @@ class Object(object):
     def walk(self):
         total = []
         for hsh in self.index:
-            obj = self._pool.get(hsh)
+            obj = self._pool.load(hsh)
             if obj is None:
                 total.append(hsh)
                 continue
@@ -68,7 +68,7 @@ class Pool(object):
         end = start + len(list(headers.keys())[0])
         return headers[data[start:end]]
 
-    def get(self, hsh):
+    def load(self, hsh):
         try:
             return self._table[hsh]
         except KeyError:
@@ -82,8 +82,8 @@ class Pool(object):
             self._table[hsh] = obj
             return obj
 
-    def put(self, obj):
-        if self.get(obj.hash) is not None:
+    def save(self, obj):
+        if self.load(obj.hash) is not None:
             return obj.hash
         path = self._gen_path(obj.hash)
         prefix = os.path.split(path)[0]
@@ -106,18 +106,18 @@ class Store(object):
 
     def _fetch_objs(self, master, ref):
         h = self.slave.refs[ref]
-        o = self.slave.get(h)
+        o = self.slave.load(h)
         if not o:
-            o = master.get(h)
-            self.slave.put(o)
+            o = master.load(h)
+            self.slave.save(o)
 
         while True:
             missing = o.walk()
             if not missing:
                 break
             for h in missing:
-                o = master.get(h)
-                self.slave.put(o)
+                o = master.load(h)
+                self.slave.save(o)
 
     def fetch(self, master):
         self._fetch_refs(master)

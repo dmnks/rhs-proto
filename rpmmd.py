@@ -93,9 +93,9 @@ class Pool(store.Pool):
     def clean(self):
         shutil.rmtree(self._destdir)
 
-    def get(self, hsh):
-        print('Get master object: %s' % hsh)
+    def load(self, hsh):
+        print('Load master object: %s' % hsh)
         return self._table[hsh]
 
-    def put(self, hsh):
+    def save(self, hsh):
         raise NotImplementedError()
