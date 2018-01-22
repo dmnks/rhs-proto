@@ -30,4 +30,8 @@ $ tree /tmp/rhs
     └── fedora27
 
 9 directories, 10 files
+$ cat /tmp/rhs/refs/fedora26
+628384d8bc78e281d398bb645832966813572319e09bc34a188973fee943dfba
+$ cat /tmp/rhs/refs/fedora27
+d0e359dd7a814ffcf47395b6cbf800c28d3aff631b8fb3ca6ee1a0976da23614
 ```
