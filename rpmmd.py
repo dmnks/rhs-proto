@@ -102,7 +102,10 @@ class MasterPool(store.Pool):
         release = comps[7]
         return distro + release
 
-    def clean(self):
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
         shutil.rmtree(self._destdir)
 
     def load(self, hsh):

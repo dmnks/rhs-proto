@@ -10,9 +10,8 @@ st = store.Store(slave)
 
 if cmd == 'fetch':
     url = sys.argv[2]
-    master = rpmmd.MasterPool(url)
-    st.fetch(master)
-    master.clean()
+    with rpmmd.MasterPool(url) as master:
+        st.fetch(master)
 elif cmd == 'checkout':
     ref = sys.argv[2]
     st.checkout(ref)
