@@ -31,22 +31,43 @@ class Object(object):
 
 
 class Pool(object):
-    def __init__(self, spec, base='/tmp/rhs/objects', width=2, depth=2):
+    def __init__(self, base, spec, width=2, depth=2):
         self._table = {}
         self._spec = spec
+        self._refs = {}
+        self._refpath = base + '/refs'
+        self._objpath = base + '/objects'
+        self._chkpath = base + '/checkout'
 
         self.base = base
         self.width = width
         self.depth = depth
-        self.refs = []
         self.head = None
+
+    @property
+    def refs(self):
+        if not self._refs:
+            for f in os.listdir(self._refpath):
+                with open(self._refpath + '/' + f) as f:
+                    k = os.path.basename(f.name)
+                    self._refs[k] = f.read()[:-1]
+        return self._refs
+
+    @refs.setter
+    def refs(self, value):
+        path = self._refpath
+        if not os.path.exists(path):
+            os.makedirs(path)
+        for k, v in value.items():
+            with open(path + '/' + k, 'w') as f:
+                f.write(v + '\n')
 
     def _gen_path(self, hsh):
         w = self.width
         d = self.depth
         cmps = [hsh[i:i+w] for i in range(0, w*d, w)]
         cmps[-1] += hsh[w*d:]
-        return os.path.join(self.base, *cmps)
+        return os.path.join(self._objpath, *cmps)
 
     def _read(self, path):
         with open(path, 'rb') as f:
@@ -95,6 +116,9 @@ class Pool(object):
         self._table[obj.hash] = obj
         return obj.hash
 
+    def checkout(self, obj, path):
+        raise NotImplementedError()
+
 
 class Store(object):
     def __init__(self, slave):
@@ -123,8 +147,8 @@ class Store(object):
         self._fetch_refs(master)
         self._fetch_objs(master, self.slave.head)
 
-    def checkout(self, ref, path):
+    def checkout(self, ref):
         h = self.slave.refs[ref]
         o = self.slave.load(h)
-        os.mkdir(path)
-        self.slave.checkout(o, path)
+        name = ref
+        self.slave.checkout(o, name)

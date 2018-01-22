@@ -48,7 +48,11 @@ spec = {
 
 
 class SlavePool(store.Pool):
-    def checkout(self, obj, path):
+    def checkout(self, obj, name):
+        path = self._chkpath + '/' + name
+        if os.path.exists(path):
+            shutil.rmtree(path)
+        os.makedirs(path)
         repomd = obj
         repomd.checkout(path + '/repomd.xml')
         phash = repomd.index[0]
@@ -90,7 +94,7 @@ class MasterPool(store.Pool):
 
         # Generate refs
         repo = self._parse_name(url)
-        self.refs = {repo: repomd_hash}
+        self._refs = {repo: repomd_hash}
         self.head = repo
 
     def _parse_name(self, url):

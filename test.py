@@ -6,8 +6,8 @@ import rpmmd
 url = sys.argv[1]
 
 master = rpmmd.MasterPool(url)
-slave = rpmmd.SlavePool(rpmmd.spec)
+slave = rpmmd.SlavePool('/tmp/rhs', rpmmd.spec)
 st = store.Store(slave)
 st.fetch(master)
-st.checkout(slave.head, '/tmp/rhs/checkout')
+st.checkout(slave.head)
 master.clean()
