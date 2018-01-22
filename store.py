@@ -42,7 +42,6 @@ class Pool(object):
         self.base = base
         self.width = width
         self.depth = depth
-        self.head = None
 
     @property
     def refs(self):
@@ -126,7 +125,6 @@ class Store(object):
 
     def _fetch_refs(self, master):
         self.slave.refs = master.refs
-        self.slave.head = master.head
 
     def _fetch_objs(self, master, ref):
         h = self.slave.refs[ref]
@@ -145,7 +143,8 @@ class Store(object):
 
     def fetch(self, master):
         self._fetch_refs(master)
-        self._fetch_objs(master, self.slave.head)
+        for ref in self.slave.refs:
+            self._fetch_objs(master, ref)
 
     def checkout(self, ref):
         h = self.slave.refs[ref]

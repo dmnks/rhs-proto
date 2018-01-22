@@ -95,7 +95,6 @@ class MasterPool(store.Pool):
         # Generate refs
         repo = self._parse_name(url)
         self._refs = {repo: repomd_hash}
-        self.head = repo
 
     def _parse_name(self, url):
         comps = url.split('/')
