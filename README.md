@@ -8,4 +8,26 @@ $ ./rhs fetch http://download.fedoraproject.org/pub/fedora/linux/releases/27/Ser
 $ ./rhs checkout fedora26
 $ ./rhs checkout fedora27
 $ tree /tmp/rhs
+/tmp/rhs/
+├── checkout
+│   ├── fedora26
+│   │   ├── primary.xml.gz
+│   │   └── repomd.xml
+│   └── fedora27
+│       ├── primary.xml.gz
+│       └── repomd.xml
+├── objects
+│   ├── 09
+│   │   └── e30a2ae2f355b1b3414154208d6f6a7b386854e5186708f638f93ff552df8d
+│   ├── 62
+│   │   └── 8384d8bc78e281d398bb645832966813572319e09bc34a188973fee943dfba
+│   ├── 8b
+│   │   └── 82e9335da484a1d943162029626fb356e9403f030d95463a398da4430a3cfa
+│   └── d0
+│       └── e359dd7a814ffcf47395b6cbf800c28d3aff631b8fb3ca6ee1a0976da23614
+└── refs
+    ├── fedora26
+    └── fedora27
+
+9 directories, 10 files
 ```
