@@ -1,0 +1,18 @@
+#!/usr/bin/python3
+import sys
+import store
+import rpmmd
+
+cmd = sys.argv[1]
+
+slave = rpmmd.SlavePool('/tmp/rhs', rpmmd.spec)
+st = store.Store(slave)
+
+if cmd == 'fetch':
+    url = sys.argv[2]
+    master = rpmmd.MasterPool(url)
+    st.fetch(master)
+    master.clean()
+elif cmd == 'checkout':
+    ref = sys.argv[2]
+    st.checkout(ref)
