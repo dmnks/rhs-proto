@@ -47,7 +47,16 @@ spec = {
 }
 
 
-class Pool(store.Pool):
+class SlavePool(store.Pool):
+    def checkout(self, obj, path):
+        repomd = obj
+        repomd.checkout(path + '/repomd.xml')
+        phash = repomd.index[0]
+        primary = self.load(phash)
+        primary.checkout(path + '/primary.xml.gz')
+
+
+class MasterPool(store.Pool):
     def __init__(self, url):
         # Fetch metadata
         h = librepo.Handle()

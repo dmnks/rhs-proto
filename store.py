@@ -122,3 +122,9 @@ class Store(object):
     def fetch(self, master):
         self._fetch_refs(master)
         self._fetch_objs(master, self.slave.head)
+
+    def checkout(self, ref, path):
+        h = self.slave.refs[ref]
+        o = self.slave.load(h)
+        os.mkdir(path)
+        self.slave.checkout(o, path)
