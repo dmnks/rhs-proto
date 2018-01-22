@@ -5,7 +5,7 @@ import binascii
 
 # Abstract class
 class Object(object):
-    def __init__(self, hsh, data, path, pool=None):
+    def __init__(self, hsh, data, path, pool):
         self._data = data
         self._path = path
         self._pool = pool
