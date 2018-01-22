@@ -26,6 +26,9 @@ class Object(object):
             total.extend(hashes)
         return total
 
+    def checkout(self, path):
+        self._pool._write(self, path)
+
 
 class Pool(object):
     def __init__(self, spec, base='/tmp/rhs/objects', width=2, depth=2):
@@ -58,9 +61,6 @@ class Pool(object):
 
     def _write(self, obj, path):
         os.link(obj._path, path)
-
-    def checkout(self, obj, path):
-        self._write(obj, path)
 
     def detect(self, data):
         headers = self._spec['headers']
