@@ -2,6 +2,7 @@
 import sys
 import store
 import rpmmd
+import newmd
 
 cmd = sys.argv[1]
 
@@ -22,7 +23,7 @@ if cmd == 'fetch':
             st.fetch(master)
     else:
         url = sys.argv[2]
-        with store.HTTPPool(url, rpmmd.spec) as master:
+        with newmd.HTTPPool(url, rpmmd.spec) as master:
             st.fetch(master)
 elif cmd == 'checkout':
     ref = sys.argv[2]
