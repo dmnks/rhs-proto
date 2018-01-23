@@ -120,9 +120,9 @@ class LibrepoPool(store.Pool):
             repo = parse_local_repo(url)
         else:
             repo = parse_url_repo(url)
-        self._refs = {repo: full['repomd']['checksum']}
+        self.refs = {repo: full['repomd']['checksum']}
         if save:
-            self.refs = self._refs
+            self.save_refs()
 
         # Clean up
         if save:

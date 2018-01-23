@@ -37,7 +37,6 @@ class Pool(object):
     def __init__(self, base, spec, width=2, depth=2):
         self._table = {}
         self._spec = spec
-        self._refs = {}
         self._refpath = base + '/refs'
         self._objpath = base + '/objects'
         self._chkpath = base + '/checkout'
@@ -45,25 +44,9 @@ class Pool(object):
         self.base = base
         self.width = width
         self.depth = depth
+        self.refs = {}
 
-    @property
-    def refs(self):
-        if not self._refs:
-            for f in os.listdir(self._refpath):
-                with open(self._refpath + '/' + f) as f:
-                    k = os.path.basename(f.name)
-                    self._refs[k] = f.read()[:-1]
-        return self._refs
-
-    @refs.setter
-    def refs(self, value):
-        path = self._refpath
-        if not os.path.exists(path):
-            os.makedirs(path)
-        for k, v in value.items():
-            with open(path + '/' + k, 'w') as f:
-                f.write(v + '\n')
-        self._refs = value
+        self.load_refs()
 
     def _gen_path(self, hsh):
         w = self.width
@@ -85,6 +68,21 @@ class Pool(object):
 
     def _write(self, obj, path):
         os.link(obj._path, path)
+
+    def load_refs(self):
+        if not os.path.exists(self._refpath):
+            return
+        with open(self._refpath) as f:
+            for line in f:
+                v, k = line.split()
+                self.refs[k] = v
+
+    def save_refs(self):
+        if not os.path.exists(self.base):
+            os.makedirs(self.base)
+        with open(self._refpath, 'w') as f:
+            for k, v in self.refs.items():
+                f.write('%s %s\n' % (v, k))
 
     def detect(self, data):
         headers = self._spec['headers']
@@ -127,10 +125,6 @@ class HTTPPool(Pool):
     def __init__(self, url, spec):
         super(HTTPPool, self).__init__(url, spec)
         self._tmpdir = tempfile.mkdtemp()
-        # TODO
-        self._refs = {
-            'default': '6d2d014bb564f42b18d1a19be20b57a41b46ddf22e3409e6f8145e7f3ecf282f',
-        }
 
     def _gen_path(self, hsh):
         url = super(HTTPPool, self)._gen_path(hsh)
@@ -149,15 +143,11 @@ class HTTPPool(Pool):
                 f.write(res.content)
         return dest
 
-    @property
-    def refs(self):
-        # TODO
-        return self._refs
-
-    @refs.setter
-    def refs(self, value):
-        # TODO
-        self._refs = value
+    def load_refs(self):
+        res = requests.get(self._refpath)
+        for line in res.text.split('\n')[:-1]:
+            v, k = line.split()
+            self.refs[k] = v
 
     def load(self, hsh):
         o = super(HTTPPool, self).load(hsh)
@@ -180,7 +170,8 @@ class Store(object):
         self.slave = slave
 
     def _fetch_refs(self, master):
-        self.slave.refs = master.refs
+        self.slave.refs.update(master.refs)
+        self.slave.save_refs()
 
     def _fetch_objs(self, master, ref):
         h = self.slave.refs[ref]
