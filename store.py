@@ -60,6 +60,7 @@ class Pool(object):
         for k, v in value.items():
             with open(path + '/' + k, 'w') as f:
                 f.write(v + '\n')
+        self._refs = value
 
     def _gen_path(self, hsh):
         w = self.width

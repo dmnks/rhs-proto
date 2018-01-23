@@ -12,6 +12,13 @@ def gen_hash(data):
     return m.hexdigest()
 
 
+def parse_name(url):
+    comps = url.split('/')
+    distro = comps[4]
+    release = comps[7]
+    return distro + release
+
+
 class Repomd(store.Object):
     def _createrepo(self):
         d = tempfile.mkdtemp()
@@ -61,56 +68,69 @@ class SlavePool(store.Pool):
 
 
 class MasterPool(store.Pool):
-    def __init__(self, url):
+    def __init__(self, url, base, width=2, depth=2):
+        if base is None:
+            base = '/dev/null'
+            save = False
+        else:
+            save = True
+        super(MasterPool, self).__init__(base, spec, width, depth)
+
         # Fetch metadata
         h = librepo.Handle()
         r = librepo.Result()
         h.repotype = librepo.LR_YUMREPO
         h.urls = [url]
-        self._destdir = h.destdir = tempfile.mkdtemp()
+        self._repodir = h.destdir = tempfile.mkdtemp()
         try:
             h.perform(r)
         except librepo.LibrepoException as e:
             pass
-        result = r.getinfo(librepo.LRR_YUM_REPOMD)
+        basic = r.getinfo(librepo.LRR_RPMMD_REPO)
+        full = r.getinfo(librepo.LRR_YUM_REPOMD)
 
-        # Add repomd to data
-        path = self._destdir + '/repodata/repomd.xml'
+        # Add repomd to the result
+        path = basic['repomd']
         with open(path, 'r') as f:
-            repomd_hash = gen_hash(f.read())
-        result['repomd'] = {'checksum': repomd_hash, 'location_href': path}
+            csum = gen_hash(f.read())
+        basic['paths']['repomd'] = path
+        full['repomd'] = {'checksum': csum, 'location_href': path}
 
         # Generate objects
-        k2o = {'repomd': Repomd, 'primary': Primary}
-        self._table = {}
-        for key, cls in k2o.items():
-            item = result[key]
-            csum = item['checksum']
-            path = item['location_href']
-            path = os.path.join(self._destdir, path)
+        for key in ['repomd', 'primary']:
+            path = basic['paths'][key]
+            csum = full[key]['checksum']
             data = self._read(path)
+            cls = self.detect(data)
             obj = cls(csum, data, path, self)
-            self._table[csum] = obj
+            if save:
+                self.save(obj)
+            else:
+                self._table[csum] = obj
 
         # Generate refs
-        repo = self._parse_name(url)
-        self._refs = {repo: repomd_hash}
+        repo = parse_name(url)
+        self._refs = {repo: full['repomd']['checksum']}
+        if save:
+            self.refs = self._refs
 
-    def _parse_name(self, url):
-        comps = url.split('/')
-        distro = comps[4]
-        release = comps[7]
-        return distro + release
+        # Clean up
+        if save:
+            # We already saved our objects into this pool so no need to keep
+            # the original download around
+            self.clean()
+
+    def clean(self):
+        shutil.rmtree(self._repodir)
+
+    def load(self, hsh):
+        o = super(MasterPool, self).load(hsh)
+        if o is not None:
+            print('Receive object: %s' % hsh)
+        return o
 
     def __enter__(self):
         return self
 
     def __exit__(self, type, value, traceback):
-        shutil.rmtree(self._destdir)
-
-    def load(self, hsh):
-        print('Receive object: %s' % hsh)
-        return self._table[hsh]
-
-    def save(self, hsh):
-        raise NotImplementedError()
+        self.clean()
