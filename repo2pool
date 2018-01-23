@@ -1,0 +1,7 @@
+#!/usr/bin/python3
+import sys
+import rpmmd
+
+src = sys.argv[1]
+dst = sys.argv[2]
+rpmmd.LibrepoPool(src, dst)
