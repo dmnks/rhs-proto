@@ -5,6 +5,12 @@ import rpmmd
 
 cmd = sys.argv[1]
 
+if cmd == 'convert':
+    src = sys.argv[2]
+    dst = sys.argv[3]
+    rpmmd.LibrepoPool(src, dst)
+    sys.exit()
+
 slave = rpmmd.Pool('/tmp/rhs', rpmmd.spec)
 st = store.Store(slave)
 
