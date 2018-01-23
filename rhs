@@ -9,9 +9,15 @@ slave = rpmmd.Pool('/tmp/rhs', rpmmd.spec)
 st = store.Store(slave)
 
 if cmd == 'fetch':
-    url = sys.argv[2]
-    with rpmmd.LibrepoPool(url, None) as master:
-        st.fetch(master)
+    arg = sys.argv[2]
+    if arg == '--compat':
+        url = sys.argv[3]
+        with rpmmd.LibrepoPool(url, None) as master:
+            st.fetch(master)
+    else:
+        url = sys.argv[2]
+        with store.HTTPPool(url, rpmmd.spec) as master:
+            st.fetch(master)
 elif cmd == 'checkout':
     ref = sys.argv[2]
     st.checkout(ref)
