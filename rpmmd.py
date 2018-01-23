@@ -12,11 +12,17 @@ def gen_hash(data):
     return m.hexdigest()
 
 
-def parse_name(url):
+def parse_url_repo(url):
     comps = url.split('/')
     distro = comps[4]
     release = comps[7]
     return distro + release
+
+
+def parse_local_repo(path):
+    if path[-1] == '/':
+        path = path[:-1]
+    return os.path.basename(path)
 
 
 class Repomd(store.Object):
@@ -81,6 +87,7 @@ class LibrepoPool(store.Pool):
         r = librepo.Result()
         h.repotype = librepo.LR_YUMREPO
         h.urls = [url]
+        h.local = not url.startswith('http')
         self._repodir = h.destdir = tempfile.mkdtemp()
         try:
             h.perform(r)
@@ -109,7 +116,10 @@ class LibrepoPool(store.Pool):
                 self._table[csum] = obj
 
         # Generate refs
-        repo = parse_name(url)
+        if h.local:
+            repo = parse_local_repo(url)
+        else:
+            repo = parse_url_repo(url)
         self._refs = {repo: full['repomd']['checksum']}
         if save:
             self.refs = self._refs
