@@ -54,7 +54,7 @@ spec = {
 }
 
 
-class SlavePool(store.Pool):
+class Pool(store.Pool):
     def checkout(self, obj, name):
         path = self._chkpath + '/' + name
         if os.path.exists(path):
@@ -67,14 +67,14 @@ class SlavePool(store.Pool):
         primary.checkout(path + '/primary.xml.gz')
 
 
-class MasterPool(store.Pool):
+class LibrepoPool(store.Pool):
     def __init__(self, url, base, width=2, depth=2):
         if base is None:
             base = '/dev/null'
             save = False
         else:
             save = True
-        super(MasterPool, self).__init__(base, spec, width, depth)
+        super(LibrepoPool, self).__init__(base, spec, width, depth)
 
         # Fetch metadata
         h = librepo.Handle()
@@ -124,7 +124,7 @@ class MasterPool(store.Pool):
         shutil.rmtree(self._repodir)
 
     def load(self, hsh):
-        o = super(MasterPool, self).load(hsh)
+        o = super(LibrepoPool, self).load(hsh)
         if o is not None:
             print('Receive object: %s' % hsh)
         return o
