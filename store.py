@@ -129,18 +129,25 @@ class Store(object):
 
     def _fetch_objs(self, master, ref):
         h = self.slave.refs[ref]
-        o = self.slave.load(h)
-        if not o:
-            o = master.load(h)
-            self.slave.save(o)
+        root = self.slave.load(h)
+        if root is None:
+            root = master.load(h)
+            if root is None:
+                return
+            self.slave.save(root)
 
+        missing = set()
         while True:
-            missing = o.walk()
-            if not missing:
+            wanted = set(root.walk())
+            wanted -= missing
+            if not wanted:
                 break
-            for h in missing:
+            for h in wanted:
                 o = master.load(h)
-                self.slave.save(o)
+                if o is None:
+                    missing.add(h)
+                else:
+                    self.slave.save(o)
 
     def fetch(self, master):
         self._fetch_refs(master)
